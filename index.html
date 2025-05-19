@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Recipe Finder V2</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;1,400&display=swap");
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Playfair Display", serif;
+        color: #f0f0f0;
+      }
+
+      body {
+        position: relative;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-image: url("https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1470&q=80");
+        background-size: cover;
+        background-position: center;
+        overflow-x: hidden;
+      }
+
+      body::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: rgba(20, 20, 20, 0.65);
+        backdrop-filter: blur(1.2px);
+        z-index: 0;
+        overflow-x: hidden; /* you have this, good */
+  overflow-y: auto; /* allow vertical scrolling */
+  min-height: 100vh;
+      }
+
+      .main {
+    position: fixed;
+    top: 50px; /* adjust as needed */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1;
+    width: 90%;
+    max-width: 640px;
+    background: rgba(30, 30, 30, 0.85);
+    border-radius: 16px;
+    padding: 50px 40px;
+    box-shadow: 0 0 20px #2196f3aa;
+    text-align: center;
+    opacity: 0;
+    animation: fadeIn 2s ease forwards;
+    font-style: normal;
+    height: 90vh;       /* fixed height */
+    overflow-y: auto;   /* enable scrolling inside */
+}
+
+
+      h1 {
+        font-size: 3.2rem;
+        margin-bottom: 30px;
+        text-shadow: 0 0 10px #2196f3cc;
+        letter-spacing: 1.3px;
+        font-weight: 400;
+        font-style: italic;
+      }
+
+      .search-box {
+        position: relative;
+        display: flex;
+        max-width: 520px;
+        margin: 0 auto 40px auto;
+        border-radius: 12px;
+        box-shadow: 0 0 12px #2196f388;
+        background-color: #222;
+        transition: box-shadow 0.3s ease;
+      }
+
+      .search-box:hover,
+      .search-box:focus-within {
+        box-shadow: 0 0 22px #2196f3dd;
+      }
+
+      .input {
+        flex: 1;
+        height: 48px;
+        padding: 0 20px;
+        font-size: 1.25rem;
+        background: transparent;
+        border: none;
+        border-top-left-radius: 12px;
+        border-bottom-left-radius: 12px;
+        color: #eee;
+        outline: none;
+        transition: background-color 0.3s ease;
+        font-style: normal;
+      }
+
+      .input::placeholder {
+        color: #bbb;
+        font-size: 1.1rem;
+        font-style: italic;
+      }
+
+      .btn-icon-content {
+        width: 60px;
+        background-color: #2196f3;
+        border: none;
+        cursor: pointer;
+        border-top-right-radius: 12px;
+        border-bottom-right-radius: 12px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 0 10px #2196f3cc;
+        transition: background-color 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .btn-icon-content:hover {
+        background-color: #64b5f6;
+        box-shadow: 0 0 18px #64b5f677;
+      }
+
+      .search-icon svg {
+        width: 24px;
+        height: 24px;
+        fill: #222;
+      }
+
+      .recipe-result {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 20px;
+      }
+
+      #results li {
+        list-style: none;
+        background: rgba(33, 150, 243, 0.15);
+        border-radius: 14px;
+        padding: 18px 22px;
+        width: 300px;
+        box-shadow: 0 0 18px rgba(33, 150, 243, 0.4);
+        cursor: pointer;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+        font-style: normal;
+      }
+
+      #results li:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 0 30px rgba(33, 150, 243, 0.8);
+      }
+
+      #results li h3 {
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+        text-shadow: 0 0 6px #2196f3cc;
+        font-weight: 400;
+        font-style: italic;
+      }
+
+      #results li p {
+        font-size: 0.9rem;
+        color: #eee;
+        line-height: 1.3;
+        font-weight: 400;
+        font-style: normal;
+      }
+
+      /* Fade In Animation */
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .fade-in {
+        animation: fadeIn 2s ease forwards;
+        opacity: 0;
+      }
+
+      /* Responsive */
+      @media (max-width: 480px) {
+        .main {
+          padding: 30px 20px;
+        }
+        h1 {
+          font-size: 2rem;
+        }
+        .search-box {
+          max-width: 100%;
+        }
+        #results li {
+          width: 100%;
+        }
+      }
+      .modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+  opacity: 0;
+  animation: fadeIn 0.6s ease forwards;
+}
+
+.modal-content {
+  position: relative;
+  background-color: rgba(0, 0, 0, 0.726);
+  padding: 30px 40px 40px;
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  max-width: 500px;
+  width: 90%;
+  color: #0943ff;
+  text-align: center;
+}
+.modal-content p {
+    color: #0943ff;
+}
+.modal-content h2 {
+    color: #0943ff;
+}
+.close-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  font-size: 1.8rem;
+  color: #ff5722;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px 8px;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.close-btn:hover {
+  color: #ff8a65;
+  transform: scale(1.2);
+}
+.recipe-card {
+    width: 240px;
+    padding: 16px 14px;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    cursor: pointer;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+  }
+
+  .recipe-card:hover {
+    transform: scale(1.07);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+    z-index: 10;
+  }
+
+  .recipe-image {
+    width: 100%;
+    height: 140px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    object-fit: cover;
+    transform: scale(0.95);
+    opacity: 0;
+    animation: imageFadeZoomIn 0.8s forwards ease;
+    transition: transform 0.4s ease;
+  }
+
+  .recipe-card:hover .recipe-image {
+    transform: scale(1.1);
+  }
+
+  .recipe-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    opacity: 0;
+    transform: translateY(15px);
+    animation: textFadeUp 0.7s forwards ease;
+    animation-delay: 0.3s;
+  }
+
+  .recipe-description {
+    font-size: 1rem;
+    color: #555;
+    line-height: 1.3;
+    opacity: 0;
+    transform: translateY(15px);
+    animation: textFadeUp 0.7s forwards ease;
+    animation-delay: 0.5s;
+  }
+  .results-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 24px;
+  padding: 10px 20px;
+  max-width: 1200px;
+  margin: 30px auto 0 auto;
+  justify-items: center;
+
+  max-height: 70vh;     /* limit height */
+}
+
+.recipe-card {
+  width: 100%;
+  max-width: 220px;
+  height: 100%;
+  max-height: 250px;
+  background-color: #f5f5f5;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  border-radius: 8px;
+  padding: 16px 12px;
+  box-sizing: border-box;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.recipe-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 8px 20px rgba(33, 150, 243, 0.35);
+}
+
+.recipe-image {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  image-rendering: crisp-edges;
+  image-rendering: -webkit-optimize-contrast;
+}
+
+.recipe-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #222;
+  margin: 0;
+}
+
+/* Scrollbar Styling for WebKit browsers */
+.main::-webkit-scrollbar {
+    width: 10px;
+    background: transparent;  /* Make the scrollbar track transparent */
+}
+
+.main::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #2196f3cc, #1769aa);
+    border-radius: 10px;
+    border: 2px solid #222;  /* Creates padding effect around thumb */
+    box-shadow: 0 0 6px #2196f3cc;
+    transition: background 0.3s ease;
+}
+
+.main::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #64b5f6, #0d47a1);
+    box-shadow: 0 0 10px #64b5f6cc;
+}
+
+/* Scrollbar Track */
+.main::-webkit-scrollbar-track {
+    background: #1a1a1a;
+    border-radius: 10px;
+}
+
+/* Firefox */
+.main {
+    scrollbar-width: thin;
+    scrollbar-color: #2196f3cc #1a1a1a;
+}
+
+  /* Keyframes */
+  @keyframes imageFadeZoomIn {
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes textFadeUp {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+@keyframes fadeOut {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes pulseGlow {
+  0% {
+    box-shadow: 0 0 20px #2196f3, 0 0 40px #2196f3, 0 0 60px #2196f3;
+  }
+  50% {
+    box-shadow: 0 0 30px #64b5f6, 0 0 60px #64b5f6, 0 0 90px #64b5f6;
+  }
+  100% {
+    box-shadow: 0 0 20px #2196f3, 0 0 40px #2196f3, 0 0 60px #2196f3;
+  }
+}
+@keyframes increaseWidth {
+    from {
+      max-width: 0;
+    }
+    to {
+      max-width: 1200px;
+    }
+  }
+
+    </style>
+  </head>
+  <body>
+    <main class="main" role="main">
+      <h1>Recipe Finder V2</h1>
+      <div class="search-box" role="search">
+        <input
+          class="input"
+          type="text"
+          id="searchInput"
+          placeholder="Search food or ingredients..."
+          aria-label="Search recipes"
+        />
+        <button
+          class="btn-icon-content"
+          id="searchButton"
+          aria-label="Search button"
+          onclick="searchRecipies()"
+        >
+          <span class="search-icon" aria-hidden="true">
+            <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"
+              />
+            </svg>
+          </span>
+        </button>
+      </div>
+      <ul
+        id="results"
+        aria-live="polite"
+        aria-atomic="true"
+        class="recipe-result"
+      ></ul>
+      <div class="modal" id="whatsChangedModal">
+        <div class="modal-content">
+          <button class="close-btn" aria-label="Close modal" onclick="wccloseModal()">×</button>
+          <h2>What's Changed</h2>
+          <p>New animations, design tweaks, and more!</p>
+        </div>
+      </div>
+      <div class="results-container" id="resultsContainer">
+
+
+      </div>
+      
+    
+    </main>
+
+      
+  </body>
+  
+
+  <script>
+      whatsChangedModal = document.getElementById("whatsChangedModal")
+      let visited = localStorage.getItem("visitedRFV2");
+      let searchInput = document.getElementById("searchInput")
+      let API1 = "https://api.edamam.com/api/recipes/v2?type=public&app_id=54d12ef4&app_key=26fb8a378eb0d000c7e28718d2b853ca&q="
+      let API2 = "https://tasty.p.rapidapi.com/recipes/list?from=0&size=200&q="
+      let mainContainer = document.getElementsByClassName("main")[0];
+      let resultsContainer = document.getElementById("resultsContainer");
+
+      function wccloseModal() {   
+        whatsChangedModal.style.animation = "fadeOut 1s "
+        setTimeout(() => {
+            whatsChangedModal.style.display = "none"
+        },1000)
+
+     
+    }
+    function checkVisited() {
+        if (visited !== null && visited !== "") {
+           whatsChangedModal.style.display = "none";
+        }else{
+            localStorage.setItem("visitedRFV2","true");
+        }
+    }
+    async function searchRecipies() {
+                    resultsContainer.innerHTML = ""
+                    
+let response2 = await fetch(API2+searchInput.value, {
+  headers: {
+ 		'x-rapidapi-key': '92dd431da0mshb024624194685f2p1aa8b1jsn98e8619042af',
+		'x-rapidapi-host': 'tasty.p.rapidapi.com'
+  },
+});
+let data2 = await response2.json();
+
+await appendResults2(data2);
+
+       let response1 = await fetch(API1+searchInput.value, {
+  headers: {
+    "Edamam-Account-User": "USER-ID",
+  }
+})
+console.log(data2)
+
+let data1 = await response1.json()
+await appendResults1(data1) 
+
+
+    }
+    function appendResults1(json1) {
+        json1Length = json1.hits.length;
+        console.log(json1Length)
+        mainContainer.style.maxWidth = "1200px"
+        mainContainer.style.width = "100%"
+        for (let i = 0; i < json1Length; i++) {
+            let currentRecipe = json1.hits[i].recipe;
+            let thumbnail = currentRecipe.images.REGULAR.url
+            let recipeName = currentRecipe.label
+            let recipeURL = currentRecipe.url
+            let recipeHTML = `
+        <div class="recipe-card">
+          <a href="${recipeURL}">
+          <img src="${thumbnail}" class="recipe-image" alt="Recipe" href="https://www.google.com"/>
+          </a>
+          <h3 class="recipe-title">${recipeName}</h3>
+        </div>
+            `
+            resultsContainer.insertAdjacentHTML("beforeend", recipeHTML);
+            
+
+        }
+        
+    }
+
+    function appendResults2(json2) {
+        json2Length = json2.results.length;
+        console.log(json2.results)
+        for (let i = 0; i < json2Length; i++) {
+          
+          let currentRecipe = json2.results[i];
+          if(currentRecipe.instructions[0]) {
+            let instructionsLength = currentRecipe.instructions.length;
+            let instructions = "";
+            for (let i = 0; i < instructionsLength; i++) {
+              let instructionsGet = currentRecipe.instructions[i].display_text
+              instructions += instructionsGet;
+              
+            }
+            let description = currentRecipe.description;
+            let tags = currentRecipe.tags;
+            let sections = currentRecipe.sections
+            let sectionsLength = currentRecipe.sections.length
+            let ingredientsArray = [];
+              let componentsGetLength = currentRecipe.sections[0].components.length
+              for (let i = 0; i < componentsGetLength; i++) {
+                let componentsGet = currentRecipe.sections[0].components[i];
+                let componentIngredient = componentsGet.ingredient.name;
+                ingredientsArray.push(componentIngredient)
+            }
+            let thumbnail1 = currentRecipe.thumbnail_url
+            let recipeName1 = currentRecipe.name
+            let cookingTime = currentRecipe.cook_time_minutes
+            const encodedInstructions = base64EncodeUnicode(JSON.stringify(instructions));
+const encodedTags = base64EncodeUnicode(JSON.stringify(tags));
+const encodedIngredients = base64EncodeUnicode(JSON.stringify(ingredientsArray));
+console.log(recipeName1)
+const recipeHTML1 = `
+  <div class="recipe-card"
+    data-instructions="${encodedInstructions}" 
+    data-description="${encodeURIComponent(description)}" 
+    data-tags="${encodedTags}" 
+    data-ingredients="${encodedIngredients}" 
+    data-thumbnail="${encodeURIComponent(thumbnail1)}" 
+    dataRecipeName="${recipeName1}" 
+    data-cookingTime="${encodeURIComponent(cookingTime)}"
+    onclick="ToDisplay(this)">
+    
+    <img 
+      src="${thumbnail1}" 
+      class="recipe-image" 
+      alt="Recipe" 
+      data-instructions="${encodedInstructions}" 
+      data-description="${encodeURIComponent(description)}" 
+      data-tags="${encodedTags}" 
+      data-ingredients="${encodedIngredients}" 
+      data-thumbnail="${encodeURIComponent(thumbnail1)}" 
+      dataRecipeName="${recipeName1}" 
+      data-cookingTime="${encodeURIComponent(cookingTime)}"
+      onclick="ToDisplay(this)"
+    />
+    
+    <h3 class="recipe-title">${recipeName1}</h3>
+  </div>
+`;
+
+resultsContainer.insertAdjacentHTML("beforeend", recipeHTML1);
+  
+      }
+        }
+    }
+    function ToDisplay(element) {
+  // Decode and parse data attributes
+  const description = decodeURIComponent(element.dataset.description);
+  const instructions = JSON.parse(base64DecodeUnicode(element.dataset.instructions));
+  const tags = JSON.parse(base64DecodeUnicode(element.dataset.tags));
+  const ingredients = JSON.parse(base64DecodeUnicode(element.dataset.ingredients));
+  const thumbnail = decodeURIComponent(element.dataset.thumbnail);
+  const recipeName = element.getAttribute("dataRecipeName");
+  const cookingTime = decodeURIComponent(element.dataset.cookingTime);
+
+
+  // Store in localStorage as JSON strings or plain strings
+  localStorage.setItem("ins", JSON.stringify(instructions));
+  localStorage.setItem("des", description);
+  localStorage.setItem("tags", JSON.stringify(tags));
+  localStorage.setItem("ingredients", JSON.stringify(ingredients));
+  localStorage.setItem("thumbnail", thumbnail);
+  localStorage.setItem("recipeName", recipeName);
+  localStorage.setItem("cookingTime", cookingTime);
+
+  // Redirect to recipe page
+  window.location.href = "./recipes"
+  
+}
+function base64EncodeUnicode(str) {
+  // First encode URI components, then convert each %XX to a character for btoa
+  return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g,
+    function(match, p1) {
+      return String.fromCharCode('0x' + p1);
+    }));
+}
+
+function base64DecodeUnicode(str) {
+  // Reverse the encoding to get the original string
+  return decodeURIComponent(Array.prototype.map.call(atob(str), function(c) {
+    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+  }).join(''));
+}
+
+    checkVisited()
+  </script>
+</html>

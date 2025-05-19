@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Recipe Finder V2</title>
+  <style>
+    body {
+      background:
+        linear-gradient(rgba(18, 18, 18, 0.7), rgba(18, 18, 18, 0.7)),
+        url('https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=1374&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D') no-repeat center center fixed;
+      background-size: cover;
+      color: #f0f0f0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 30px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow-y: scroll;
+    }
+
+    /* PAGE SCROLLBAR */
+    body::-webkit-scrollbar {
+      width: 12px;
+    }
+
+    body::-webkit-scrollbar-track {
+      background: #121212;
+    }
+
+    body::-webkit-scrollbar-thumb {
+      background-color: #64b5f6;
+      border-radius: 20px;
+      border: 3px solid #121212;
+    }
+
+    body::-webkit-scrollbar-thumb:hover {
+      background-color: #4285f4;
+    }
+
+    /* Firefox scrollbar for page */
+    body {
+      scrollbar-width: thin;
+      scrollbar-color: #64b5f6 #121212;
+    }
+
+    .recipe-content {
+      max-width: 900px;
+      width: 100%;
+      background-color: rgba(40, 40, 40, 0.9);
+      border-radius: 16px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      padding: 30px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      position: relative;
+    }
+
+    .recipe-title {
+      font-size: 36px;
+      font-weight: 700;
+      color: #64b5f6;
+      margin: 0;
+      text-align: center;
+    }
+
+    /* Tags */
+    #tagsSection {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .tag {
+      background-color: #2196f3;
+      color: white;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 14px;
+      user-select: none;
+    }
+
+    /* Description */
+    #descriptionText {
+      font-size: 18px;
+      line-height: 1.5;
+      color: #ddd;
+      text-align: center;
+      max-width: 800px;
+      margin: 0 auto;
+      font-style: italic;
+    }
+
+    /* Layout grid for image + ingredients + recipe */
+    .main-info {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      align-items: start;
+    }
+
+    #foodImage {
+      width: 100%;
+      border-radius: 16px;
+      box-shadow: 0 6px 20px rgba(33, 150, 243, 0.5);
+      object-fit: cover;
+      max-height: 400px;
+    }
+
+    .ingredients-recipe {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* Ingredients */
+    #ingredientsList {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 10px;
+    }
+
+    #ingredientsList li {
+      background-color: #333;
+      padding: 10px;
+      border-radius: 10px;
+      text-align: center;
+      color: #fff;
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    /* Recipe instructions */
+    #instructionsText {
+      background-color: #222;
+      border-radius: 16px;
+      padding: 20px;
+      font-size: 16px;
+      line-height: 1.6;
+      color: #eee;
+      white-space: pre-line;
+      max-height: 400px;
+      overflow-y: auto;
+      box-shadow: inset 0 0 10px #000;
+    }
+
+    /* Scrollbar styles for recipe instructions */
+    #instructionsText::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    #instructionsText::-webkit-scrollbar-track {
+      background: #1a1a1a;
+      border-radius: 10px;
+    }
+
+    #instructionsText::-webkit-scrollbar-thumb {
+      background-color: #64b5f6;
+      border-radius: 10px;
+      border: 2px solid #1a1a1a;
+    }
+
+    #instructionsText::-webkit-scrollbar-thumb:hover {
+      background-color: #4285f4;
+    }
+
+    /* Firefox scrollbar for instructions */
+    #instructionsText {
+      scrollbar-width: thin;
+      scrollbar-color: #64b5f6 #1a1a1a;
+    }
+
+    /* Back button */
+    #backBtn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: transparent;
+      border: none;
+      color: #64b5f6;
+      font-size: 26px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 8px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    #backBtn:hover {
+      background-color: rgba(100, 181, 246, 0.2);
+      color: #4285f4;
+    }
+
+    /* Responsive for mobile */
+    @media (max-width: 768px) {
+      .recipe-content {
+        padding: 20px 25px;
+        gap: 18px;
+      }
+
+      .recipe-title {
+        font-size: 28px;
+      }
+
+      #descriptionText {
+        font-size: 16px;
+        max-width: 100%;
+        padding: 0 10px;
+      }
+
+      .main-info {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+
+      #ingredientsList {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 8px;
+      }
+
+      #ingredientsList li {
+        font-size: 14px;
+        padding: 8px;
+      }
+
+      #instructionsText {
+        font-size: 15px;
+        max-height: 300px;
+        padding: 16px;
+      }
+
+      #backBtn {
+        top: 10px;
+        left: 10px;
+        font-size: 22px;
+        padding: 3px 6px;
+      }
+    }
+      /* Chrome, Edge, Safari */
+  body::-webkit-scrollbar {
+    width: 12px;
+  }
+  body::-webkit-scrollbar-track {
+    background: #121212;
+  }
+  body::-webkit-scrollbar-thumb {
+    background-color: #64b5f6;
+    border-radius: 20px;
+    border: 3px solid #121212;
+  }
+  body::-webkit-scrollbar-thumb:hover {
+    background-color: #4285f4;
+  }
+  </style>
+</head>
+<body>
+
+  <div class="recipe-content">
+    <button id="backBtn" aria-label="Go Back">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64b5f6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+      
+
+    <h1 id="recipeTitle" class="recipe-title">Classic Pancakes</h1>
+
+    <div id="tagsSection">
+ 
+    </div>
+
+    <p id="descriptionText" class="description">
+      Fluffy and delicious classic pancakes, perfect for a weekend brunch or a quick breakfast any day!
+    </p>
+
+    <div class="main-info">
+      <img
+        id="foodImage"
+        class="food-image"
+        src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=1374&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        alt="Classic Pancakes"
+      />
+
+      <div class="ingredients-recipe">
+        <ul id="ingredientsList" class="recipe-ingredients">
+
+        </ul>
+
+        <div id="instructionsText" class="recipe-instructions" tabindex="0">
+            Mix all dry ingredients in a bowl. In another bowl, whisk the milk, egg, melted butter, and vanilla extract together. Combine the wet and dry ingredients until just mixed (some lumps are okay). Heat a non-stick skillet over medium heat and pour 1/4 cup batter for each pancake. Cook until bubbles form on top, then flip and cook until golden brown. Serve warm with syrup or toppings of choice.
+            Mix all dry ingredients in a bowl. In another bowl, whisk the milk, egg, melted butter, and vanilla extract together. Combine the wet and dry ingredients until just mixed (some lumps are okay). Heat a non-stick skillet over medium heat and pour 1/4 cup batter for each pancake. Cook until bubbles form on top, then flip and cook until golden brown. Serve warm with syrup or toppings of choice.
+            Mix all dry ingredients in a bowl. In another bowl, whisk the milk, egg, melted butter, and vanilla extract together. Combine the wet and dry ingredients until just mixed (some lumps are okay). Heat a non-stick skillet over medium heat and pour 1/4 cup batter for each pancake. Cook until bubbles form on top, then flip and cook until golden brown. Serve warm with syrup or toppings of choice.
+            Mix all dry ingredients in a bowl. In another bowl, whisk the milk, egg, melted butter, and vanilla extract together. Combine the wet and dry ingredients until just mixed (some lumps are okay). Heat a non-stick skillet over medium heat and pour 1/4 cup batter for each pancake. Cook until bubbles form on top, then flip and cook until golden brown. Serve warm with syrup or toppings of choice.
+          Mix all dry ingredients in a bowl. In another bowl, whisk the milk, egg, melted butter, and vanilla extract together. Combine the wet and dry ingredients until just mixed (some lumps are okay). Heat a non-stick skillet over medium heat and pour 1/4 cup batter for each pancake. Cook until bubbles form on top, then flip and cook until golden brown. Serve warm with syrup or toppings of choice.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+   let recipeTitle = document.getElementById("recipeTitle");
+   let tagsSection = document.getElementById("tagsSection");
+   let descriptionText = document.getElementById("descriptionText")
+   let foodImage = document.getElementById("foodImage");
+   let instructionsText = document.getElementById("instructionsText");
+   const instructions = JSON.parse(localStorage.getItem("ins"));
+const description = localStorage.getItem("des");
+const ingredients = JSON.parse(localStorage.getItem("ingredients"));
+const thumbnail = localStorage.getItem("thumbnail");
+const recipeName = localStorage.getItem("recipeName");
+const cookingTime = localStorage.getItem("cookingTime");
+const tags = JSON.parse(localStorage.getItem("tags"));
+const ingredientsList = document.getElementById("ingredientsList");
+const ingredientsJSON = JSON.stringify(ingredients);
+function setElements() {
+    const requiredData = {
+  instructions,
+  description,
+  ingredients,
+  thumbnail,
+  recipeName,
+  cookingTime,
+  tags,
+};
+
+const missingData = Object.entries(requiredData).filter(([key, value]) => value === null || value === undefined);
+
+if (missingData.length > 0) {
+  window.location.href = window.location.origin;  // Replace with the desired URL
+}
+recipeTitle.innerHTML = recipeName;
+
+let ingrLength = ingredients.length
+console.log(ingrLength)
+for (let i = 0; i < 5; i++) {
+    let tagsName = tags[i].display_name;
+    tagsHTML = `
+    <div class="tag">${tagsName}</div>
+    `
+    tagsSection.insertAdjacentHTML("beforeend", tagsHTML);
+}
+for (let i = 0; i < ingrLength; i++) {
+    let ingrName = ingredients[i];
+    tagsHTML = `
+   <li>${ingrName}</li>
+    `
+    ingredientsList.innerHTML += tagsHTML
+}
+
+
+descriptionText.innerHTML = description;
+foodImage.src = thumbnail;
+instructionsText.innerHTML = instructions;
+}
+setElements()
+    document.getElementById('backBtn').addEventListener('click', () => {
+      console.log('Back button clicked');
+      window.history.back()
+    });
+    
+
+
+
+  </script>
+  
+</body>
+</html>
